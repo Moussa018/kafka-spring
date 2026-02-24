@@ -14,7 +14,7 @@ RUN gradle build --no-daemon -x test
 
 # --- Étape 2 : Exécution de l'application ---
 # Utilise une image JDK minimale et légère pour l'exécution (plus sécurisée et petite)
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /app
 
 # Copie le JAR construit depuis l'étape 'build' vers l'étape 'run'

@@ -59,23 +59,25 @@ public class PageEventHandler {
       }
 
 
-    @Bean
-    public Function<KStream<String, PageEvent>, KStream<String, Long>> kStreamKStreamFunction() {
-        return (input) ->
-                input
-                        .filter((k, v) -> v.duration() > 100)
-                        .map((k, v) -> new KeyValue<>(v.name(), v.duration()))
-                        .groupByKey(Grouped.with(Serdes.String(), Serdes.Long()))
-                        .windowedBy(
-                                TimeWindows.ofSizeAndGrace(
-                                        Duration.ofSeconds(5),       // ✅ Fenêtre de 5 secondes
-                                        Duration.ofSeconds(1)        // ✅ Grace period de 1 seconde
-                                )
-                        )
-                        .count(Materialized.as("count-store"))
-                        .toStream()
-                        .map((k, v) -> new KeyValue<>(k.key(), v));
-    }
+  @Bean
+public Function<KStream<String, PageEvent>, KStream<String, Long>> kStreamKStreamFunction() {
+    return (input) ->
+            input
+                    .filter((k, v) -> v.duration() > 100)
+                    .map((k, v) -> new KeyValue<>(v.name(), v.duration()))
+                    .groupByKey(Grouped.with(Serdes.String(), Serdes.Long()))
+                    .windowedBy(
+                            TimeWindows.ofSizeAndGrace(
+                                    Duration.ofSeconds(5),
+                                    Duration.ofSeconds(1)
+                            )
+                    )
+                    .count(Materialized.<String, Long, WindowStore<Bytes, byte[]>>as("count-store")
+                            .withKeySerde(Serdes.String())
+                            .withValueSerde(Serdes.Long()))
+                    .toStream()
+                    .map((k, v) -> new KeyValue<>(k.key(), v));
+}
     @GetMapping(path = "/analytics",produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<Map<String, Long>> analytics(){
         return Flux.interval(Duration.ofSeconds(1))
