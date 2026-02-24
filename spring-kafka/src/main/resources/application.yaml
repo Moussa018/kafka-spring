@@ -1,0 +1,32 @@
+spring:
+  cloud:
+    stream:
+      function:
+        definition: pageEventConsumer;pageEventSupplier;kStreamKStreamFunction
+      bindings:
+        pageEventConsumer-in-0:
+          destination: page-events
+          group: page-group
+        pageEventSupplier-out-0:
+          destination: page-events
+        kStreamKStreamFunction-in-0:
+          destination: page-events
+        kStreamKStreamFunction-out-0:
+          destination: page-counts
+      kafka:
+        streams:
+          binder:
+            brokers: broker:29092
+            configuration:
+              commit.interval.ms: 1000
+              default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+              default.value.serde: org.springframework.kafka.support.serializer.JsonSerde
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
